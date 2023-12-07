@@ -1,6 +1,7 @@
 import numpy as np
 import random
 
+
 def rec4a_prga(key1: bytes, key2: bytes):
     s1 = list(range(256))
     s2 = list(range(256))
@@ -28,15 +29,17 @@ def rec4a_prga(key1: bytes, key2: bytes):
 
         yield ks1 ^ ks2
 
+
 def compute_hash(seed: bytes):
     p = 31
     mod = int(1e9 + 9)
     hash = 0
     pow = 1
     for c in seed:
-        hash = (hash + (c - ord('a') * pow)) % mod
+        hash = (hash + (c - ord("a") * pow)) % mod
         pow = (pow * p) % mod
     return hash
+
 
 def ideal_rc4_prga(key: bytes):
     s = list(range(256))
@@ -50,6 +53,7 @@ def ideal_rc4_prga(key: bytes):
         old_i = i
         i = (i + 1) % 256
         yield (s[old_i] + s[j]) % 256
+
 
 def vmpc_prga(key: bytes):
     s = list(range(256))
@@ -70,6 +74,7 @@ def vmpc_prga(key: bytes):
         i = (i + 1) % 256
         yield ks
 
+
 def rc4plus_prga(key: bytes):
     s = list(range(256))
     l = len(key)
@@ -78,7 +83,7 @@ def rc4plus_prga(key: bytes):
     for i in range(256):
         j = (j + s[i] + key[i % l]) % 256
         s[i], s[j] = s[j], s[i]
-    
+
     i = j = 0
     while True:
         i = (i + 1) % 256
@@ -88,7 +93,7 @@ def rc4plus_prga(key: bytes):
         s[i], s[j] = s[j], s[i]
 
         c = (s[(i << 5 ^ j >> 3) % 256] + s[(j << 5 ^ i >> 3) % 256]) % 256
-        yield ((s[(a+b) % 256] + s[(c ^ 0xAA) % 256]) ^ s[(j+b) % 256]) % 256
+        yield ((s[(a + b) % 256] + s[(c ^ 0xAA) % 256]) ^ s[(j + b) % 256]) % 256
 
 
 def ksa(key):
@@ -100,6 +105,7 @@ def ksa(key):
         S[i], S[j] = S[j], S[i]
     return S
 
+
 def prga(s):
     i = 0
     j = 0
@@ -110,14 +116,16 @@ def prga(s):
         # print(f"{s[i]=} + {s[j]=} = {s[i] + s[j]}")
         yield s[(s[i] + s[j]) % 256]
 
+
 def meksa(key):
     S = np.arange(256, dtype=np.int32)
     j = 0
     for i in range(256):
-        ic = 255-S[i]
+        ic = 255 - S[i]
         j = (j + S[ic] + key[i % len(key)]) % 256
         S[i], S[j] = S[j], S[i]
     return S
+
 
 def meprga(s):
     i = j1 = j2 = 0
@@ -129,36 +137,43 @@ def meprga(s):
         s[i], s[j2] = s[j2], s[i]
         yield s[(s[i] + s[j1] + s[j2]) % 256] ^ j2
 
+
 def rc4(key, plaintext):
     keystream = prga(ksa(key))
     key_char = zip(keystream, plaintext)
     return bytes([ks ^ c for (ks, c) in key_char])
 
+
 def rc4a(key, plaintext):
-    key2 = ''.join(random.sample(str(key),len(key))).encode('utf8')
+    key2 = "".join(random.sample(str(key), len(key))).encode("utf8")
     keystream = rec4a_prga(key, key2)
     key_char = zip(keystream, plaintext)
     return bytes([ks ^ c for (ks, c) in key_char])
+
 
 def merc4(key, plaintext):
     keystream = meprga(meksa(key))
     key_char = zip(keystream, plaintext)
     return bytes([ks ^ c for (ks, c) in key_char])
 
+
 def vmpc(key, plaintext):
     keystream = vmpc_prga(key)
     key_char = zip(keystream, plaintext)
     return bytes([ks ^ c for (ks, c) in key_char])
+
 
 def ideal_rc4(key, plaintext):
     keystream = ideal_rc4_prga(key)
     key_char = zip(keystream, plaintext)
     return bytes([ks ^ c for (ks, c) in key_char])
 
+
 def rc4_plus(key, plaintext):
     keystream = rc4plus_prga(key)
     key_char = zip(keystream, plaintext)
     return bytes([ks ^ c for (ks, c) in key_char])
+
 
 def ApEn(U, m, r) -> float:
     """Approximate_entropy."""
