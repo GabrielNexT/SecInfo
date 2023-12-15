@@ -30,7 +30,8 @@ def approximate_entropy(e, m=None):
     ap_en = phi(get_counts(e, m)) - phi(get_counts(e, m+1))
     chi_squared = 2 * n * (math.log(2) - ap_en)
     pval = 1 - gammainc(2**(m-1), chi_squared/2)
-    return ap_en, chi_squared, pval
+    #return ap_en, chi_squared, pval
+    return pval
 
 def keystream_ap_en(ks):
     return approximate_entropy(bytes_to_bits(ks))
@@ -55,7 +56,9 @@ def cumsum(e, mode=0):
     sum2 = 0
     for k in nrange((-n/z-3)/4, (n/z-1)/4):
         sum2 += normal_cdf((4*k+3)*z/np.sqrt(n)) - normal_cdf((4*k+1)*z/np.sqrt(n))
-    return z, 1 - sum1 + sum2
+    pval = 1 - sum1 + sum2
+    #return z, pval
+    return pval
         
 def keystream_cumsum(ks):
     return cumsum(bytes_to_bits(ks))
@@ -76,7 +79,8 @@ def monobit_test(e):
     s = sum(map(lambda x: 1 if int(x) else -1, e))
     sobs = abs(s)/np.sqrt(n)
     pval = math.erfc(sobs/np.sqrt(2))
-    return sobs, sobs, pval
+    #return sobs, sobs, pval
+    return pval
 
 def run_test(e):
     n = len(e)
@@ -88,10 +92,9 @@ def run_test(e):
     for k in range(0, n-1):
         v = 1 if e[k] != e[k+1] else 0
         vobs += v
-    tmp = abs(vobs - 2*n*prop*(1-prop))/(2*np.sqrt(2*n)*prop*(1-prop))
-    print(tmp)
-    pval = math.erfc(tmp)
-    return prop, vobs, pval
+    pval = math.erfc(abs(vobs - 2*n*prop*(1-prop))/(2*np.sqrt(2*n)*prop*(1-prop)))
+    #return prop, vobs, pval
+    return pval
 
 def keystream_run_test(ks):
     return run_test(bytes_to_bits(ks))
