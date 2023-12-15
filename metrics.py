@@ -98,3 +98,8 @@ def run_test(e):
 
 def keystream_run_test(ks):
     return run_test(bytes_to_bits(ks))
+
+def fisher_method(pvals):
+    if pvals is np.array:
+        return -2 * np.sum(np.log(pvals))
+    return -2 * sum(map(lambda x: math.log(x), pvals))

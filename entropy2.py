@@ -1,4 +1,4 @@
-from scipy.stats import entropy
+from scipy.stats import entropy, combine_pvalues
 import numpy as np
 import pandas as pd
 
@@ -13,7 +13,7 @@ from rc4 import (
     vmpc_prga,
     rc4plus_prga,
 )
-from metrics import keystream_ap_en, keystream_run_test, keystream_cumsum
+from metrics import keystream_ap_en, keystream_run_test, keystream_cumsum, fisher_method
 
 KEYS = list(
     map(
@@ -71,9 +71,15 @@ def test_keys():
 
 
 def main():
+    mcols = ['ApEn', 'run_test', 'cumsum', 'entropy']
     df = test_keys()
     print(df)
     #df.to_csv('results.csv', index=False)
+    #print(df.groupby('cipher')[mcols].agg(['mean', 'std']))
+    #df.to_latex('results.tex', index=False, float_format="%.3f")
+    #print(df.groupby('cipher')[mcols[:-1]].agg(fisher_method))
+    fisher = df.groupby('cipher')[mcols[:-1]].agg(lambda x: combine_pvalues(x, method='fisher')[1])
+    fisher.to_latex('fisher.tex', float_format="%.3f")
 
 if __name__ == "__main__":
     main()
